@@ -40,7 +40,8 @@ def parse_solc_G1(solc_G1: Tuple[int, int]):
 
 
 def format_G1(g1_element: Tuple[FQ, FQ, FQ]) -> Tuple[FQ, FQ]:
-    return normalize(g1_element)
+    x, y = normalize(g1_element)
+    return (str(x), str(y))
 
 
 def format_G2(g2_element: Tuple[FQ2, FQ2, FQ2]) -> Tuple[FQ2, FQ2]:
@@ -57,7 +58,7 @@ def test_main():
 
     public_key = get_public_key(secret_key)
     data = encode_hex("fooooo")
-    message_solc = test_bls.hashToPoint(data)
+    message_solc = tuple(test_bls.hashToPoint(data))
     message = parse_solc_G1(message_solc)
     sig = sign(message, secret_key)
     message_solc_2 = format_G1(message)
