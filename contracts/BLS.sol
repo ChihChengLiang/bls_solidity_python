@@ -505,11 +505,23 @@ library BLS {
     }
 
     function _FQ2Conjugate(
-        uint256 xx, uint256 xy,
-        uint256 yx, uint256 yy
+        uint256 x, uint256 y
     ) internal pure returns (uint256, uint256) {
+        return (x, N-y);
     }
 
-    //function endomorphism(uint256 x, uint256 x) internal pure returns (uint256, uint256) {
-    //}
+    function endomorphism(uint256 xx, uint256 xy,
+        uint256 yx, uint256 yy) internal pure returns (uint256, uint256,uint256, uint256) {
+
+        // Frobenius x coordinate
+        (uint256 xxp,uint256 xyp) = _FQ2Conjugate(xx,xy);
+        // Frobenius y coordinate
+        (uint256 yxp,uint256 yyp) = _FQ2Conjugate(yx,yy);
+        // x coordinate endomorphism
+        (uint256 xxe,uint256 xye) = _FQ2Mul(epsExp0x0,epsExp0x1,xxp,xyp);
+        // y coordinate endomorphism
+        (uint256 yxe,uint256 yye) = _FQ2Mul(epsExp1x0, epsExp1x1,yxp,yyp);
+
+        return (xxe,xye,yxe,yye);
+    }
 }
