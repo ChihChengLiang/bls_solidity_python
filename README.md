@@ -9,3 +9,11 @@ More on https://hackmd.io/@liangcc/bls-solidity
 ```sh
 brownie test
 ```
+
+alternative
+
+```
+npm install -g ganache-cli@6.12.2
+poetry install
+poetry run pytest
+```
