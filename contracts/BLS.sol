@@ -485,13 +485,19 @@ library BLS {
         return addmod(a, n - b, n);
     }
 
-        function _FQ2Mul(
+    function _FQ2Mul(
         uint256 xx, uint256 xy,
         uint256 yx, uint256 yy
     ) internal pure returns (uint256, uint256) {
         return (
-            submod(mulmod(xx, yx, FIELD_MODULUS), mulmod(xy, yy, FIELD_MODULUS), FIELD_MODULUS),
-            addmod(mulmod(xx, yy, FIELD_MODULUS), mulmod(xy, yx, FIELD_MODULUS), FIELD_MODULUS)
+            submod(mulmod(xx, yx, N), mulmod(xy, yy, N), N),
+            addmod(mulmod(xx, yy, N), mulmod(xy, yx, N), N)
         );
+    }
+
+    function endomorphism(uint256 x, uint256 x) internal pure returns (uint256, uint256) {
+        //eps^((p-1)/3)
+        epsExp0x0 := 21575463638280843010398324269430826099269044274347216827212613867836435027261
+        epsExp0x1 := 10307601595873709700152284273816112264069230130616436755625194854815875713954
     }
 }
