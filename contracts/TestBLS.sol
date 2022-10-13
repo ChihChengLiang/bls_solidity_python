@@ -194,4 +194,12 @@ contract TestBLS {
     {
         return BLS.isValidCompressedSignature(compressed);
     }
+
+    function submod(uint256 a, uint256 b, uint256 n)
+        external
+        view
+        returns (uint256)
+    {
+        return BLS.submod(a,b,n);
+    }
 }
