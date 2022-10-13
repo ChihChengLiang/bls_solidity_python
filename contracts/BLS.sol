@@ -480,4 +480,18 @@ library BLS {
         }
         require(callSuccess, "BLS: sqrt modexp call failed");
     }
+
+    function submod(uint256 a, uint256 b, uint256 n) internal pure returns (uint256) {
+        return addmod(a, n - b, n);
+    }
+
+        function _FQ2Mul(
+        uint256 xx, uint256 xy,
+        uint256 yx, uint256 yy
+    ) internal pure returns (uint256, uint256) {
+        return (
+            submod(mulmod(xx, yx, FIELD_MODULUS), mulmod(xy, yy, FIELD_MODULUS), FIELD_MODULUS),
+            addmod(mulmod(xx, yy, FIELD_MODULUS), mulmod(xy, yx, FIELD_MODULUS), FIELD_MODULUS)
+        );
+    }
 }
