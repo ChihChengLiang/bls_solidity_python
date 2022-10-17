@@ -1,9 +1,12 @@
 pragma solidity ^0.5.15;
-
+import {BN256G2} from "https://github.com/musalbas/solidity-BN256G2/blob/master/BN256G2.sol";
 library BLS {
     // Field order
     uint256 constant N = 21888242871839275222246405745257275088696311157297823662689037894645226208583;
 
+    // curve order
+    uint256 constant r = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
+    
     // Negated genarator of G2
     uint256 constant nG2x1 = 11559732032986387107991004021392285783925812861821192530917403151452391805634;
     uint256 constant nG2x0 = 10857046999023057135944570762232829481370756359578518086990519993285655852781;
@@ -380,6 +383,32 @@ library BLS {
             )
             _isOnCurve := eq(1, mload(freemem))
         }
+    }
+
+    function isOnSubgroupG2Naive(uint256[4] memory point)
+        internal
+        view
+        returns (bool)
+    {
+        uint256 t0;
+        uint256 t1;
+        uint256 t2;
+        uint256 t3;
+        // solium-disable-next-line security/no-inline-assembly
+        assembly {
+            t0 := mload(add(point, 0))
+            t1 := mload(add(point, 32))
+            // y0, y1
+            t2 := mload(add(point, 64))
+            t3 := mload(add(point, 96))
+        }
+        uint256 xx;
+        uint256 xy;
+        uint256 yx;
+        uint256 yy;
+
+        (xx,xy,yx,yy) = BN256G2.ECTwistMul(r,t0,t1,t2,t3);
+        return xx ==0  && xy==0 && yx==0  && yy==0;
     }
 
     function isNonResidueFP(uint256 e)
