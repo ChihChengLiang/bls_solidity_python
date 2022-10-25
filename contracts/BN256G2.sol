@@ -83,7 +83,7 @@ library BN256G2 {
         uint256 pt1yx,
         uint256 pt1yy
     )
-        public
+        internal
         view
         returns (
             uint256,
