@@ -1,5 +1,6 @@
-pragma solidity ^0.5.15;
-import {BN256G2} from "https://github.com/musalbas/solidity-BN256G2/blob/master/BN256G2.sol";
+// SPDX-License-Identifier: LGPL 3.0
+pragma solidity ^0.8.15;
+
 library BLS {
     // Field order
     uint256 constant N = 21888242871839275222246405745257275088696311157297823662689037894645226208583;
