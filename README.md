@@ -17,4 +17,5 @@ poetry run pytest
 
 ```
 npm run fmt
+poetry run black .
 ```

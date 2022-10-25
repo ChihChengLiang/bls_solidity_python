@@ -31,6 +31,7 @@ jobs:
     - run: npm install --ci
 
     - run: npm run check
+    - run: poetry run black .
 
     - run: poetry install
 
