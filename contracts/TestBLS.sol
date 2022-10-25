@@ -98,6 +98,12 @@ contract TestBLS {
         return BLS.isOnSubgroupG2Naive(point);
     }
 
+    function isOnSubgroupG2NaiveGasCost(uint256[4] calldata point) external view returns (uint256) {
+        uint256 g = gasleft();
+        BLS.isOnSubgroupG2Naive(point);
+        return g - gasleft();
+    }
+
     function isNonResidueFP(uint256 e) external view returns (bool) {
         return BLS.isNonResidueFP(e);
     }

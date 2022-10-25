@@ -68,16 +68,30 @@ def test_main():
 
     assert test_bls.verifySingle(sig_solc, pubkey_solc, message_solc_2)
 
+
 def test_internal():
     test_bls = accounts[0].deploy(TestBLS)
-    N = 21888242871839275222246405745257275088696311157297823662689037894645226208583;
+    N = 21888242871839275222246405745257275088696311157297823662689037894645226208583
 
     # test submod with a>b
     a = 16892529993056482552485669957863612836432816989509464843349488177090397978789
     b = 10547156594123983059799308138658569114243770050893198291525700850739309859937
-    assert (a-b % N) ==  test_bls.submod(a,b,N)
+    assert (a - b % N) == test_bls.submod(a, b, N)
 
     # test submod with a<b
     a = 2887636117557138566317124683879803668620536475764517791345341369549693202511
     b = 10444549903735524959536677150525069990060091594425138117547036643047941623085
-    assert ((a-b) % N) ==  test_bls.submod(a,b,N)
+    assert ((a - b) % N) == test_bls.submod(a, b, N)
+
+
+def test_g2_subgroup_check():
+    valid_G2 = multiply(G2, 5)
+    assert is_on_curve(valid_G2, b2)
+
+    # TODO: how do you create invalid G2?
+    test_bls = accounts[0].deploy(TestBLS)
+
+    assert test_bls.isOnSubgroupG2Naive(format_G2(valid_G2))
+
+    gasCost = test_bls.isOnSubgroupG2NaiveGasCost(format_G2(valid_G2))
+    print("G2 subgroup check naive", gasCost)
