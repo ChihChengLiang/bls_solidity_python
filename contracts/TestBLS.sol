@@ -1,6 +1,7 @@
-pragma solidity ^0.5.15;
+// SPDX-License-Identifier: LGPL 3.0
+pragma solidity ^0.8.15;
 
-import { BLS } from "./BLS.sol";
+import {BLS} from "./BLS.sol";
 
 contract TestBLS {
     function verifyMultiple(
@@ -17,10 +18,7 @@ contract TestBLS {
         uint256[2][] calldata messages
     ) external view returns (uint256) {
         uint256 g = gasleft();
-        require(
-            BLS.verifyMultiple(signature, pubkeys, messages),
-            "BLSTest: expect succesful verification"
-        );
+        require(BLS.verifyMultiple(signature, pubkeys, messages), "BLSTest: expect succesful verification");
         return g - gasleft();
     }
 
@@ -38,110 +36,65 @@ contract TestBLS {
         uint256[2] calldata message
     ) external view returns (uint256) {
         uint256 g = gasleft();
-        require(
-            BLS.verifySingle(signature, pubkey, message),
-            "BLSTest: expect succesful verification"
-        );
+        require(BLS.verifySingle(signature, pubkey, message), "BLSTest: expect succesful verification");
         return g - gasleft();
     }
 
-    function hashToPoint(bytes calldata data)
-        external
-        view
-        returns (uint256[2] memory p)
-    {
+    function hashToPoint(bytes calldata data) external view returns (uint256[2] memory p) {
         return BLS.hashToPoint(data);
     }
 
-    function hashToPointGasCost(bytes calldata data)
-        external
-        view
-        returns (uint256 p)
-    {
+    function hashToPointGasCost(bytes calldata data) external view returns (uint256 p) {
         uint256 g = gasleft();
         BLS.hashToPoint(data);
         return g - gasleft();
     }
 
     function isOnCurveG1Compressed(uint256 point) external view returns (bool) {
-
-            uint256 FIELD_MASK
-         = 0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;
+        uint256 FIELD_MASK = 0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;
         return BLS.isOnCurveG1(point & FIELD_MASK);
     }
 
-    function isOnCurveG1(uint256[2] calldata point)
-        external
-        pure
-        returns (bool)
-    {
+    function isOnCurveG1(uint256[2] calldata point) external pure returns (bool) {
         return BLS.isOnCurveG1(point);
     }
 
-    function isOnCurveG1CompressedGasCost(uint256 point)
-        external
-        returns (uint256)
-    {
+    function isOnCurveG1CompressedGasCost(uint256 point) external returns (uint256) {
         uint256 g = gasleft();
         BLS.isOnCurveG1(point);
         return g - gasleft();
     }
 
-    function isOnCurveG1GasCost(uint256[2] calldata point)
-        external
-        returns (uint256)
-    {
+    function isOnCurveG1GasCost(uint256[2] calldata point) external returns (uint256) {
         uint256 g = gasleft();
         BLS.isOnCurveG1(point);
         return g - gasleft();
     }
 
-    function isOnCurveG2Compressed(uint256[2] calldata point)
-        external
-        view
-        returns (bool)
-    {
-
-            uint256 FIELD_MASK
-         = 0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;
+    function isOnCurveG2Compressed(uint256[2] calldata point) external view returns (bool) {
+        uint256 FIELD_MASK = 0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;
         uint256 x0 = point[0] & FIELD_MASK;
         uint256 x1 = point[1];
         return BLS.isOnCurveG2([x0, x1]);
     }
 
-    function isOnCurveG2(uint256[4] calldata point)
-        external
-        pure
-        returns (bool)
-    {
+    function isOnCurveG2(uint256[4] calldata point) external pure returns (bool) {
         return BLS.isOnCurveG2(point);
     }
 
-    function isOnCurveG2CompressedGasCost(uint256[2] calldata point)
-        external
-        view
-        returns (uint256)
-    {
+    function isOnCurveG2CompressedGasCost(uint256[2] calldata point) external view returns (uint256) {
         uint256 g = gasleft();
         BLS.isOnCurveG2(point);
         return g - gasleft();
     }
 
-    function isOnCurveG2GasCost(uint256[4] calldata point)
-        external
-        view
-        returns (uint256)
-    {
+    function isOnCurveG2GasCost(uint256[4] calldata point) external view returns (uint256) {
         uint256 g = gasleft();
         BLS.isOnCurveG2(point);
         return g - gasleft();
     }
 
-    function isOnSubgroupG2Naive(uint256[4] calldata point)
-        external
-        view
-        returns (bool)
-    {
+    function isOnSubgroupG2Naive(uint256[4] calldata point) external view returns (bool) {
         return BLS.isOnSubgroupG2Naive(point);
     }
 
@@ -155,59 +108,37 @@ contract TestBLS {
         return g - gasleft();
     }
 
-    function isNonResidueFP2(uint256[2] calldata e)
-        external
-        view
-        returns (bool)
-    {
+    function isNonResidueFP2(uint256[2] calldata e) external view returns (bool) {
         return BLS.isNonResidueFP2(e);
     }
 
-    function isNonResidueFP2GasCost(uint256[2] calldata e)
-        external
-        returns (uint256)
-    {
+    function isNonResidueFP2GasCost(uint256[2] calldata e) external returns (uint256) {
         uint256 g = gasleft();
         BLS.isNonResidueFP2(e);
         return g - gasleft();
     }
 
-    function pubkeyToUncompresed(
-        uint256[2] calldata compressed,
-        uint256[2] calldata y
-    ) external pure returns (uint256[4] memory uncompressed) {
+    function pubkeyToUncompresed(uint256[2] calldata compressed, uint256[2] calldata y) external pure returns (uint256[4] memory uncompressed) {
         return BLS.pubkeyToUncompresed(compressed, y);
     }
 
-    function signatureToUncompresed(uint256 compressed, uint256 y)
-        external
-        pure
-        returns (uint256[2] memory uncompressed)
-    {
+    function signatureToUncompresed(uint256 compressed, uint256 y) external pure returns (uint256[2] memory uncompressed) {
         return BLS.signatureToUncompresed(compressed, y);
     }
 
-    function isValidCompressedPublicKey(uint256[2] calldata compressed)
-        external
-        view
-        returns (bool)
-    {
+    function isValidCompressedPublicKey(uint256[2] calldata compressed) external view returns (bool) {
         return BLS.isValidCompressedPublicKey(compressed);
     }
 
-    function isValidCompressedSignature(uint256 compressed)
-        external
-        view
-        returns (bool)
-    {
+    function isValidCompressedSignature(uint256 compressed) external view returns (bool) {
         return BLS.isValidCompressedSignature(compressed);
     }
 
-    function submod(uint256 a, uint256 b, uint256 n)
-        external
-        view
-        returns (uint256)
-    {
-        return BLS.submod(a,b,n);
+    function submod(
+        uint256 a,
+        uint256 b,
+        uint256 n
+    ) external view returns (uint256) {
+        return BLS.submod(a, b, n);
     }
 }
