@@ -104,6 +104,16 @@ contract TestBLS {
         return g - gasleft();
     }
 
+    function isOnSubgroupG2DLZZ(uint256[4] calldata point) external view returns (bool) {
+        return BLS.isOnSubgroupG2DLZZ(point);
+    }
+
+    function isOnSubgroupG2DLZZGasCost(uint256[4] calldata point) external view returns (uint256) {
+        uint256 g = gasleft();
+        BLS.isOnSubgroupG2DLZZ(point);
+        return g - gasleft();
+    }
+
     function isNonResidueFP(uint256 e) external view returns (bool) {
         return BLS.isNonResidueFP(e);
     }

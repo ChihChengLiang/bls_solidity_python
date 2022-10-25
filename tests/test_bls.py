@@ -95,3 +95,8 @@ def test_g2_subgroup_check():
 
     gasCost = test_bls.isOnSubgroupG2NaiveGasCost(format_G2(valid_G2))
     print("G2 subgroup check naive", gasCost)
+
+    assert test_bls.isOnSubgroupG2DLZZ(format_G2(valid_G2))
+
+    gasCost = test_bls.isOnSubgroupG2DLZZGasCost(format_G2(valid_G2))
+    print("G2 subgroup check DLZZ", gasCost)

@@ -20,6 +20,9 @@ library BLS {
     uint256 constant SIGN_MASK = 0x8000000000000000000000000000000000000000000000000000000000000000;
     uint256 constant ODD_NUM = 0x8000000000000000000000000000000000000000000000000000000000000000;
 
+    // curve param x. We use s here to prevent confusion with coordinate x.
+    uint256 constant s = 4965661367192848881;
+
     //eps^((p-1)/3)
     uint256 internal constant epsExp0x0 = 21575463638280843010398324269430826099269044274347216827212613867836435027261;
     uint256 internal constant epsExp0x1 = 10307601595873709700152284273816112264069230130616436755625194854815875713954;
@@ -400,5 +403,54 @@ library BLS {
         (uint256 yxe, uint256 yye) = _FQ2Mul(epsExp1x0, epsExp1x1, yxp, yyp);
 
         return (xxe, xye, yxe, yye);
+    }
+
+    /// Using https://eprint.iacr.org/2022/348.pdf
+    function isOnSubgroupG2DLZZ(uint256[4] memory point) internal view returns (bool) {
+        uint256 t0;
+        uint256 t1;
+        uint256 t2;
+        uint256 t3;
+        // solium-disable-next-line security/no-inline-assembly
+        assembly {
+            t0 := mload(add(point, 0))
+            t1 := mload(add(point, 32))
+            // y0, y1
+            t2 := mload(add(point, 64))
+            t3 := mload(add(point, 96))
+        }
+
+        uint256 xx;
+        uint256 xy;
+        uint256 yx;
+        uint256 yy;
+        //s*P
+        (xx, xy, yx, yy) = BN256G2.ECTwistMul(s, t0, t1, t2, t3);
+
+        uint256 xx0;
+        uint256 xy0;
+        uint256 yx0;
+        uint256 yy0;
+        //(s+1)P
+        (xx0, xy0, yx0, yy0) = BN256G2.ECTwistAdd(t0, t1, t2, t3, xx, xy, yx, yy);
+
+        uint256[4] memory end0;
+        //phi(sP)
+        (end0[0], end0[1], end0[2], end0[3]) = endomorphism(xx, xy, yx, yy);
+        uint256[4] memory end1;
+        //phi^2(sP)
+        (end1[0], end1[1], end1[2], end1[3]) = endomorphism(end0[0], end0[1], end0[2], end0[3]);
+        //(s+1)P + phi(sP)
+        (xx0, xy0, yx0, yy0) = BN256G2.ECTwistAdd(xx0, xy0, yx0, yy0, end0[0], end0[1], end0[2], end0[3]);
+        //(s+1)P + phi(sP) + phi^2(sP)
+        (xx0, xy0, yx0, yy0) = BN256G2.ECTwistAdd(xx0, xy0, yx0, yy0, end1[0], end1[1], end1[2], end1[3]);
+        //2sP
+        (xx, xy, yx, yy) = BN256G2.ECTwistAdd(xx, xy, yx, yy, xx, xy, yx, yy);
+        //phi^2(2sP)
+        (end0[0], end0[1], end0[2], end0[3]) = endomorphism(xx, xy, yx, yy);
+        (end0[0], end0[1], end0[2], end0[3]) = endomorphism(end0[0], end0[1], end0[2], end0[3]);
+        (end0[0], end0[1], end0[2], end0[3]) = endomorphism(end0[0], end0[1], end0[2], end0[3]);
+
+        return xx0 == end0[0] && xy0 == end0[1] && yx0 == end0[2] && yy0 == end0[3];
     }
 }
