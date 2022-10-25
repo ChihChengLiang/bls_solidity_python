@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "description": "See tests/test_bls.py for detail",
   "scripts": {
-    "fmt": "npx prettier --write 'contracts/**/*.sol'"
+    "fmt": "npx prettier --write 'contracts/**/*.sol'",
+    "check": "npx prettier --check 'contracts/**/*.sol'"
   },
   "repository": {
     "type": "git",

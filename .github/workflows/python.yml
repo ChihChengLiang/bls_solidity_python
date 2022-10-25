@@ -28,6 +28,10 @@ jobs:
     - name: Install Ganache
       run: npm install -g ganache-cli@6.12.2
 
+    - run: npm install --ci
+
+    - run: npm run check
+
     - run: poetry install
 
     - run: poetry run pytest

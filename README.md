@@ -11,3 +11,10 @@ npm install -g ganache-cli@6.12.2
 poetry install
 poetry run pytest
 ```
+
+
+## Formatting
+
+```
+npm run fmt
+```
