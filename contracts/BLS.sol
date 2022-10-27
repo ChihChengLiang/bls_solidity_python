@@ -423,7 +423,7 @@ library BLS {
         (xx0, xy0, yx0, yy0) = BN256G2.ECTwistAdd(xx0, xy0, yx0, yy0, end1[0], end1[1], end1[2], end1[3]);
         //2sP
         (xx, xy, yx, yy) = BN256G2.ECTwistAdd(xx, xy, yx, yy, xx, xy, yx, yy);
-        //phi^2(2sP)
+        //phi^3(2sP)
         (end0[0], end0[1], end0[2], end0[3]) = endomorphism(xx, xy, yx, yy);
         (end0[0], end0[1], end0[2], end0[3]) = endomorphism(end0[0], end0[1], end0[2], end0[3]);
         (end0[0], end0[1], end0[2], end0[3]) = endomorphism(end0[0], end0[1], end0[2], end0[3]);
