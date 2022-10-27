@@ -19,3 +19,14 @@ poetry run pytest
 npm run fmt
 poetry run black .
 ```
+
+
+## G2 subgroup check
+
+See https://ethresear.ch/t/fast-mathbb-g-2-subgroup-check-in-bn254/13974 for context
+
+| method | gas cost |
+| ------ | -------: |
+| naive  |  3052409 |
+| DLZZ   |   926447 |
+

@@ -357,27 +357,6 @@ library BLS {
         require(callSuccess, "BLS: sqrt modexp call failed");
     }
 
-    function submod(
-        uint256 a,
-        uint256 b,
-        uint256 n
-    ) internal pure returns (uint256) {
-        return addmod(a, n - b, n);
-    }
-
-    function _FQ2Mul(
-        uint256 xx,
-        uint256 xy,
-        uint256 yx,
-        uint256 yy
-    ) internal pure returns (uint256, uint256) {
-        return (submod(mulmod(xx, yx, N), mulmod(xy, yy, N), N), addmod(mulmod(xx, yy, N), mulmod(xy, yx, N), N));
-    }
-
-    function _FQ2Conjugate(uint256 x, uint256 y) internal pure returns (uint256, uint256) {
-        return (x, N - y);
-    }
-
     function endomorphism(
         uint256 xx,
         uint256 xy,
@@ -393,14 +372,12 @@ library BLS {
             uint256
         )
     {
-        // Frobenius x coordinate
-        (uint256 xxp, uint256 xyp) = _FQ2Conjugate(xx, xy);
-        // Frobenius y coordinate
-        (uint256 yxp, uint256 yyp) = _FQ2Conjugate(yx, yy);
         // x coordinate endomorphism
-        (uint256 xxe, uint256 xye) = _FQ2Mul(epsExp0x0, epsExp0x1, xxp, xyp);
+        // (xx, N - xy) is the conjugate of (xx, xy)
+        (uint256 xxe, uint256 xye) = BN256G2._FQ2Mul(epsExp0x0, epsExp0x1, xx, N - xy);
         // y coordinate endomorphism
-        (uint256 yxe, uint256 yye) = _FQ2Mul(epsExp1x0, epsExp1x1, yxp, yyp);
+        // (yx, N - yy) is the conjugate of (yx, yy)
+        (uint256 yxe, uint256 yye) = BN256G2._FQ2Mul(epsExp1x0, epsExp1x1, yx, N - yy);
 
         return (xxe, xye, yxe, yye);
     }
@@ -446,7 +423,7 @@ library BLS {
         (xx0, xy0, yx0, yy0) = BN256G2.ECTwistAdd(xx0, xy0, yx0, yy0, end1[0], end1[1], end1[2], end1[3]);
         //2sP
         (xx, xy, yx, yy) = BN256G2.ECTwistAdd(xx, xy, yx, yy, xx, xy, yx, yy);
-        //phi^2(2sP)
+        //phi^3(2sP)
         (end0[0], end0[1], end0[2], end0[3]) = endomorphism(xx, xy, yx, yy);
         (end0[0], end0[1], end0[2], end0[3]) = endomorphism(end0[0], end0[1], end0[2], end0[3]);
         (end0[0], end0[1], end0[2], end0[3]) = endomorphism(end0[0], end0[1], end0[2], end0[3]);
