@@ -29,10 +29,9 @@ jobs:
       run: npm install -g ganache-cli@6.12.2
 
     - run: npm install --ci
+    - run: poetry install
 
     - run: npm run check
     - run: poetry run black .
-
-    - run: poetry install
 
     - run: poetry run pytest
