@@ -6,6 +6,16 @@ More on https://hackmd.io/@liangcc/bls-solidity
 
 ## Getting Started
 
-```sh
-brownie test
+```
+npm install -g ganache-cli@6.12.2
+poetry install
+poetry run pytest
+```
+
+
+## Formatting
+
+```
+npm run fmt
+poetry run black .
 ```

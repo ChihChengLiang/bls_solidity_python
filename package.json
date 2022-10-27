@@ -1,0 +1,23 @@
+{
+  "name": "bls_solidity_python",
+  "version": "1.0.0",
+  "description": "See tests/test_bls.py for detail",
+  "scripts": {
+    "fmt": "npx prettier --write 'contracts/**/*.sol'",
+    "check": "npx prettier --check 'contracts/**/*.sol'"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ChihChengLiang/solidity-BN256G2.git"
+  },
+  "author": "",
+  "license": "LGPL 3.0",
+  "bugs": {
+    "url": "https://github.com/ChihChengLiang/solidity-BN256G2/issues"
+  },
+  "homepage": "https://github.com/ChihChengLiang/solidity-BN256G2#readme",
+  "devDependencies": {
+    "prettier": "^2.7.1",
+    "prettier-plugin-solidity": "^1.0.0-beta.24"
+  }
+}
