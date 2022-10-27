@@ -127,7 +127,7 @@ library BN256G2 {
         uint256 xy,
         uint256 yx,
         uint256 yy
-    ) public pure returns (uint256, uint256) {
+    ) internal pure returns (uint256, uint256) {
         return (
             submod(mulmod(xx, yx, FIELD_MODULUS), mulmod(xy, yy, FIELD_MODULUS), FIELD_MODULUS),
             addmod(mulmod(xx, yy, FIELD_MODULUS), mulmod(xy, yx, FIELD_MODULUS), FIELD_MODULUS)
