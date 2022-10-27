@@ -27,6 +27,6 @@ See https://ethresear.ch/t/fast-mathbb-g-2-subgroup-check-in-bn254/13974 for con
 
 | method | gas cost |
 | ------ | -------: |
-| naive  |  3052409 |
-| DLZZ   |   926447 |
+| naive  |  3052440 |
+| DLZZ   |   870176 |
 
