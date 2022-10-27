@@ -255,7 +255,7 @@ library BN256G2 {
         uint256 pt2yy,
         uint256 pt2zx,
         uint256 pt2zy
-    ) public pure returns (uint256[6] memory pt3) {
+    ) internal pure returns (uint256[6] memory pt3) {
         if (pt1zx == 0 && pt1zy == 0) {
             (pt3[PTXX], pt3[PTXY], pt3[PTYX], pt3[PTYY], pt3[PTZX], pt3[PTZY]) = (pt2xx, pt2xy, pt2yx, pt2yy, pt2zx, pt2zy);
             return pt3;
@@ -338,6 +338,17 @@ library BN256G2 {
         (pt2zx, pt2zy) = _FQ2Muc(pt2zx, pt2zy, 8); // newz = 8 * S * S_squared
     }
 
+    function _ECTwistDoubleJacobianMem(uint256[6] memory pt1) internal pure returns (uint256[6] memory pt2) {
+        (pt2[PTXX], pt2[PTXY], pt2[PTYX], pt2[PTYY], pt2[PTZX], pt2[PTZY]) = _ECTwistDoubleJacobian(
+            pt1[PTXX],
+            pt1[PTXY],
+            pt1[PTYX],
+            pt1[PTYY],
+            pt1[PTZX],
+            pt1[PTZY]
+        );
+    }
+
     function _ECTwistMulJacobian(
         uint256 d,
         uint256 pt1xx,
@@ -346,7 +357,7 @@ library BN256G2 {
         uint256 pt1yy,
         uint256 pt1zx,
         uint256 pt1zy
-    ) public pure returns (uint256[6] memory pt2) {
+    ) internal pure returns (uint256[6] memory pt2) {
         while (d != 0) {
             if ((d & 1) != 0) {
                 pt2 = _ECTwistAddJacobian(pt2[PTXX], pt2[PTXY], pt2[PTYX], pt2[PTYY], pt2[PTZX], pt2[PTZY], pt1xx, pt1xy, pt1yx, pt1yy, pt1zx, pt1zy);

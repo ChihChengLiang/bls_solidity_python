@@ -31,6 +31,13 @@ library BLS {
     uint256 internal constant epsExp1x0 = 2821565182194536844548159561693502659359617185244120367078079554186484126554;
     uint256 internal constant epsExp1x1 = 3505843767911556378687030309984248845540243509899259641013678093033130930403;
 
+    uint256 internal constant PTXX = 0;
+    uint256 internal constant PTXY = 1;
+    uint256 internal constant PTYX = 2;
+    uint256 internal constant PTYY = 3;
+    uint256 internal constant PTZX = 4;
+    uint256 internal constant PTZY = 5;
+
     function verifySingle(
         uint256[2] memory signature,
         uint256[4] memory pubkey,
@@ -397,37 +404,61 @@ library BLS {
             t3 := mload(add(point, 96))
         }
 
+        //s*P
+        uint256[6] memory sP = BN256G2._ECTwistMulJacobian(s, t0, t1, t2, t3, 1, 0);
+        uint256[6] memory s1P = BN256G2._ECTwistAddJacobian(sP[PTXX], sP[PTXY], sP[PTYX], sP[PTYY], sP[PTZX], sP[PTZY], t0, t1, t2, t3, 1, 0);
         uint256 xx;
         uint256 xy;
         uint256 yx;
         uint256 yy;
-        //s*P
-        (xx, xy, yx, yy) = BN256G2.ECTwistMul(s, t0, t1, t2, t3);
-
-        uint256 xx0;
-        uint256 xy0;
-        uint256 yx0;
-        uint256 yy0;
-        //(s+1)P
-        (xx0, xy0, yx0, yy0) = BN256G2.ECTwistAdd(t0, t1, t2, t3, xx, xy, yx, yy);
-
+        (xx, xy, yx, yy) = BN256G2._fromJacobian(sP[PTXX], sP[PTXY], sP[PTYX], sP[PTYY], sP[PTZX], sP[PTZY]);
         uint256[4] memory end0;
         //phi(sP)
-        (end0[0], end0[1], end0[2], end0[3]) = endomorphism(xx, xy, yx, yy);
+        (end0[PTXX], end0[PTXY], end0[PTYX], end0[PTYY]) = endomorphism(xx, xy, yx, yy);
         uint256[4] memory end1;
         //phi^2(sP)
-        (end1[0], end1[1], end1[2], end1[3]) = endomorphism(end0[0], end0[1], end0[2], end0[3]);
+        (end1[PTXX], end1[PTXY], end1[PTYX], end1[PTYY]) = endomorphism(end0[PTXX], end0[PTXY], end0[PTYX], end0[PTYY]);
         //(s+1)P + phi(sP)
-        (xx0, xy0, yx0, yy0) = BN256G2.ECTwistAdd(xx0, xy0, yx0, yy0, end0[0], end0[1], end0[2], end0[3]);
+        uint256[6] memory sum = BN256G2._ECTwistAddJacobian(
+            s1P[PTXX],
+            s1P[PTXY],
+            s1P[PTYX],
+            s1P[PTYY],
+            s1P[PTZX],
+            s1P[PTZY],
+            end0[PTXX],
+            end0[PTXY],
+            end0[PTYX],
+            end0[PTYY],
+            1,
+            0
+        );
         //(s+1)P + phi(sP) + phi^2(sP)
-        (xx0, xy0, yx0, yy0) = BN256G2.ECTwistAdd(xx0, xy0, yx0, yy0, end1[0], end1[1], end1[2], end1[3]);
+        sum = BN256G2._ECTwistAddJacobian(
+            sum[PTXX],
+            sum[PTXY],
+            sum[PTYX],
+            sum[PTYY],
+            sum[PTZX],
+            sum[PTZY],
+            end1[PTXX],
+            end1[PTXY],
+            end1[PTYX],
+            end1[PTYY],
+            1,
+            0
+        );
+        (sum[PTXX], sum[PTXY], sum[PTYX], sum[PTYY]) = BN256G2._fromJacobian(sum[PTXX], sum[PTXY], sum[PTYX], sum[PTYY], sum[PTZX], sum[PTZY]);
         //2sP
-        (xx, xy, yx, yy) = BN256G2.ECTwistAdd(xx, xy, yx, yy, xx, xy, yx, yy);
-        //phi^3(2sP)
-        (end0[0], end0[1], end0[2], end0[3]) = endomorphism(xx, xy, yx, yy);
-        (end0[0], end0[1], end0[2], end0[3]) = endomorphism(end0[0], end0[1], end0[2], end0[3]);
-        (end0[0], end0[1], end0[2], end0[3]) = endomorphism(end0[0], end0[1], end0[2], end0[3]);
 
-        return xx0 == end0[0] && xy0 == end0[1] && yx0 == end0[2] && yy0 == end0[3];
+        uint256[6] memory _2sP = BN256G2._ECTwistDoubleJacobianMem(sP);
+        (_2sP[PTXX], _2sP[PTXY], _2sP[PTYX], _2sP[PTYY]) = BN256G2._fromJacobian(_2sP[PTXX], _2sP[PTXY], _2sP[PTYX], _2sP[PTYY], _2sP[PTZX], _2sP[PTZY]);
+
+        //phi^3(2sP)
+        (end0[PTXX], end0[PTXY], end0[PTYX], end0[PTYY]) = endomorphism(_2sP[PTXX], _2sP[PTXY], _2sP[PTYX], _2sP[PTYY]);
+        (end0[PTXX], end0[PTXY], end0[PTYX], end0[PTYY]) = endomorphism(end0[PTXX], end0[PTXY], end0[PTYX], end0[PTYY]);
+        (end0[PTXX], end0[PTXY], end0[PTYX], end0[PTYY]) = endomorphism(end0[PTXX], end0[PTXY], end0[PTYX], end0[PTYY]);
+
+        return sum[PTXX] == end0[PTXX] && sum[PTXY] == end0[1] && sum[PTYX] == end0[PTYX] && sum[PTYY] == end0[PTYY];
     }
 }
