@@ -450,7 +450,7 @@ library BLS {
     // each signer submits two public keys(in G1&G2) corresponding to their secret key
 
     /// @notice verify if both public keys have the same secret
-    /// @dev not sufficient to check for rogue-key attacks, use verifyHelpedAggregated instead
+    /// @dev not sufficient to check for rogue-key attacks, use verifyHelpedAggregationPublicKeysRec instead
     /// @param pubkeyG1 public key in G1 
     /// @param pubkeyG2 public key in G2
     function verifyHelpedAggregationPublicKeys(
@@ -473,7 +473,7 @@ library BLS {
     }
 
     /// @notice verifies if a list of pubkeysG2 is equivalent to aggPubKeyG1 that is aggregated off chain
-    /// @dev not sufficient to check for rogue-key attacks, use verifyHelpedAggregated instead
+    /// @dev not sufficient to check for rogue-key attacks, use verifyHelpedAggregationPublicKeysRec instead
     /// @param aggPubkeyG1 public key in G1(aggregated off chain) 
     /// @param pubkeysG2 list of public keys in G2 
     function verifyHelpedAggregationPublicKeysMultiple(
