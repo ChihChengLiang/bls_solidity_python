@@ -149,4 +149,26 @@ contract TestBLS {
     function isValidCompressedSignature(uint256 compressed) external view returns (bool) {
         return BLS.isValidCompressedSignature(compressed);
     }
+
+    function verifyHelpedAggregationPublicKeys(
+        uint256[2] memory pubKeyG1,
+        uint256[4] memory pubkey
+    ) external view returns (bool) {
+        return BLS.verifyHelpedAggregationPublicKeys(pubKeyG1,pubkey);
+    }
+
+    function verifyHelpedAggregationPublicKeysMultiple(
+        uint256[2] memory pubKeyG1,
+        uint256[4][] memory pubkeys
+    ) external view returns (bool) {
+        return BLS.verifyHelpedAggregationPublicKeysMultiple(pubKeyG1,pubkeys);
+    }
+
+    function verifyHelpedAggregationPublicKeysRec(
+        uint256[2] memory aggregated_p1, uint256[4] memory aggregated_g2, 
+        bytes memory data,uint256[2] memory signature
+        ) external view returns (bool) {
+        return BLS.verifyHelpedAggregationPublicKeysRec(aggregated_p1, aggregated_g2, data,signature);
+    }
+
 }

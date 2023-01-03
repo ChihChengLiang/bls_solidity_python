@@ -5,8 +5,12 @@ from eth_hash.auto import keccak
 from typing import Tuple
 from eth_utils import encode_hex
 
+# used for helped aggregation
+def get_public_key_G1(secret_key: int) -> Tuple[FQ, FQ, FQ]:
+    return multiply(G1, secret_key)
 
-def get_public_key(secret_key: int):
+
+def get_public_key(secret_key: int) -> Tuple[FQ2, FQ2, FQ2]:
     return multiply(G2, secret_key)
 
 
@@ -22,6 +26,14 @@ def aggregate_signatures(signatures: list[Tuple[FQ, FQ, FQ]]) -> Tuple[FQ, FQ, F
 
 
 def aggregate_public_keys(pubkeys: list[Tuple[FQ2, FQ2, FQ2]]) -> Tuple[FQ2, FQ2, FQ2]:
+    res = pubkeys[0]
+    for pubkey in pubkeys[1:]:
+        res = add(res, pubkey)
+    return res
+
+
+# used for helped aggregation
+def aggregate_public_keys_G1(pubkeys: list[Tuple[FQ, FQ, FQ]]) -> Tuple[FQ, FQ, FQ]:
     res = pubkeys[0]
     for pubkey in pubkeys[1:]:
         res = add(res, pubkey)
@@ -124,3 +136,64 @@ def test_aggregation():
 
     # using verifySignle just to test aggregate_public_keys
     assert test_bls.verifySingle(agg_sig_solc, agg_pubkey_solc, message_solc)
+
+
+# Helped aggregation : https://geometry.xyz/notebook/Optimized-BLS-multisignatures-on-EVM
+# Making verification of multisignatures efficient
+# each signer submits two public keys(in G1&G2) corresponding to their secret key
+def test_helped_aggregation():
+    test_bls = accounts[0].deploy(TestBLS)
+
+    valid_G1 = multiply(G1, 5)
+    assert is_on_curve(valid_G1, b)
+    valid_G2 = multiply(G2, 5)
+    assert is_on_curve(valid_G2, b2)
+
+    data = encode_hex("fooooo")
+    message_solc = tuple(test_bls.hashToPoint(data))
+    message = parse_solc_G1(message_solc)
+
+    secret_key1 = 123
+    secret_key2 = 456
+
+    sig1 = sign(message, secret_key1)
+    sig1_solc = format_G1(sig1)
+    sig2 = sign(message, secret_key2)
+    sig2_solc = format_G1(sig2)
+    agg_sig = aggregate_signatures([sig1, sig2])
+    agg_sig_solc = format_G1(agg_sig)
+
+    public_key1G1 = get_public_key_G1(secret_key1)
+    public_key1G1_solc = format_G1(public_key1G1)
+    public_key1G2 = get_public_key(secret_key1)
+    public_key1G2_solc = format_G2(public_key1G2)
+    assert test_bls.verifyHelpedAggregationPublicKeys(
+        public_key1G1_solc, public_key1G2_solc
+    )
+    assert test_bls.verifyHelpedAggregationPublicKeysRec(
+        public_key1G1_solc, public_key1G2_solc, data, sig1_solc
+    )
+
+    public_key2G1 = get_public_key_G1(secret_key2)
+    public_key2G1_solc = format_G1(public_key2G1)
+    public_key2G2 = get_public_key(secret_key2)
+    public_key2G2_solc = format_G2(public_key2G2)
+    assert test_bls.verifyHelpedAggregationPublicKeys(
+        public_key2G1_solc, public_key2G2_solc
+    )
+    assert test_bls.verifyHelpedAggregationPublicKeysRec(
+        public_key2G1_solc, public_key2G2_solc, data, sig2_solc
+    )
+
+    agg_public_key_G1 = aggregate_public_keys_G1([public_key1G1, public_key2G1])
+    agg_pubkey_G1_solc = format_G1(agg_public_key_G1)
+
+    agg_public_key_G2 = aggregate_public_keys([public_key1G2, public_key2G2])
+    agg_pubkey_G2_solc = format_G2(agg_public_key_G2)
+
+    assert test_bls.verifyHelpedAggregationPublicKeysMultiple(
+        agg_pubkey_G1_solc, [public_key1G2_solc, public_key2G2_solc]
+    )
+    assert test_bls.verifyHelpedAggregationPublicKeysRec(
+        agg_pubkey_G1_solc, agg_pubkey_G2_solc, data, agg_sig_solc
+    )

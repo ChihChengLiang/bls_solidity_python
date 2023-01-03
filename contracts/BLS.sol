@@ -9,7 +9,21 @@ library BLS {
 
     // curve order
     uint256 constant r = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
+    
+    // Genarator of G1 - according to py_ecc implementation
+    uint256 constant G1x = 1; 
+    uint256 constant G1y = 2; 
 
+    // Negated genarator of G1
+    uint256 constant nG1x = 1; 
+    uint256 constant nG1y = 21888242871839275222246405745257275088696311157297823662689037894645226208581;
+
+    // Genarator of G2
+    uint256 constant G2x1 = 11559732032986387107991004021392285783925812861821192530917403151452391805634;
+    uint256 constant G2x0 = 10857046999023057135944570762232829481370756359578518086990519993285655852781;
+    uint256 constant G2y1 = 4082367875863433681332203403145435568316851327593401208105741076214120093531;
+    uint256 constant G2y0 = 8495653923123431417604973247489272438418190587263600148770280649306958101930;
+    
     // Negated genarator of G2
     uint256 constant nG2x1 = 11559732032986387107991004021392285783925812861821192530917403151452391805634;
     uint256 constant nG2x0 = 10857046999023057135944570762232829481370756359578518086990519993285655852781;
@@ -429,5 +443,126 @@ library BLS {
         (end0[0], end0[1], end0[2], end0[3]) = endomorphism(end0[0], end0[1], end0[2], end0[3]);
 
         return xx0 == end0[0] && xy0 == end0[1] && yx0 == end0[2] && yy0 == end0[3];
+    }
+
+    // Helped aggregation : https://geometry.xyz/notebook/Optimized-BLS-multisignatures-on-EVM
+    // Making verification of multisignatures efficient
+    // each signer submits two public keys(in G1&G2) corresponding to their secret key
+
+    /// @notice verify if both public keys have the same secret
+    /// @dev not sufficient to check for rogue-key attacks, use verifyHelpedAggregated instead
+    /// @param pubkeyG1 public key in G1 
+    /// @param pubkeyG2 public key in G2
+    function verifyHelpedAggregationPublicKeys(
+        uint256[2] memory pubkeyG1,
+        uint256[4] memory pubkeyG2
+    ) internal view returns (bool) {
+        uint256[12] memory input = [pubkeyG1[0], pubkeyG1[1], G2x1, G2x0, G2y1, G2y0, nG1x, nG1y, pubkeyG2[1], pubkeyG2[0], pubkeyG2[3], pubkeyG2[2]];
+        uint256[1] memory out;
+        bool success;
+        // solium-disable-next-line security/no-inline-assembly
+        assembly {
+            success := staticcall(sub(gas(), 2000), 8, input, 384, out, 0x20)
+            switch success
+            case 0 {
+                invalid()
+            }
+        }
+        require(success, "");
+        return out[0] != 0;
+    }
+
+    /// @notice verifies if a list of pubkeysG2 is equivalent to aggPubKeyG1 that is aggregated off chain
+    /// @dev not sufficient to check for rogue-key attacks, use verifyHelpedAggregated instead
+    /// @param aggPubkeyG1 public key in G1(aggregated off chain) 
+    /// @param pubkeysG2 list of public keys in G2 
+    function verifyHelpedAggregationPublicKeysMultiple(
+        uint256[2] memory aggPubkeyG1,
+        uint256[4][] memory pubkeysG2
+    ) internal view returns (bool) {
+        uint256 size = pubkeysG2.length;
+        require(size > 0, "BLS: number of public key is zero");
+        uint256 inputSize = (size + 1) * 6;
+        uint256[] memory input = new uint256[](inputSize);
+        input[0] = aggPubkeyG1[0];
+        input[1] = aggPubkeyG1[1];
+        input[2] = G2x1;
+        input[3] = G2x0;
+        input[4] = G2y1;
+        input[5] = G2y0;
+        for (uint256 i = 0; i < size; i++) {
+            input[i * 6 + 6] = nG1x;
+            input[i * 6 + 7] = nG1y;
+            input[i * 6 + 8] = pubkeysG2[i][1];
+            input[i * 6 + 9] = pubkeysG2[i][0];
+            input[i * 6 + 10] = pubkeysG2[i][3];
+            input[i * 6 + 11] = pubkeysG2[i][2];
+        }
+        uint256[1] memory out;
+        bool success;
+        // solium-disable-next-line security/no-inline-assembly
+        assembly {
+            success := staticcall(sub(gas(), 2000), 8, add(input, 0x20), mul(inputSize, 0x20), out, 0x20)
+            switch success
+            case 0 {
+                invalid()
+            }
+        }
+        require(success, "");
+        return out[0] != 0;
+    }
+    
+    /// @notice Add two points in G1
+    function addPoints(uint256[2] memory p1, uint256[2] memory p2) internal view returns (uint256[2] memory ret) {
+		    uint[4] memory input;
+		    input[0] = p1[0];
+		    input[1] = p1[1];
+		    input[2] = p2[0];
+		    input[3] = p2[1];
+		    bool success;
+		    assembly {
+			    success := staticcall(sub(gas(), 2000), 6, input, 0xc0, ret, 0x60)
+		    }
+		    require(success);
+	  }
+
+    /// @notice multiple a point in G1 by a scaler
+	  function mulPoint(uint256[2] memory p, uint256 n) internal view returns (uint256[2] memory ret) {
+		    uint[3] memory input;
+		    input[0] = p[0];
+		    input[1] = p[1];
+		    input[2] = n;
+		    bool success;
+		    assembly {
+			    success := staticcall(sub(gas(), 2000), 7, input, 0x80, ret, 0x60)
+		    }
+		    require (success);
+	  }
+
+    /// @notice https://gist.github.com/kobigurk/257c1783ddf556e330f31ed57febc1d9
+    /// @dev the recommended way to verify if both public keys have the same secret
+    /// as it checks if the signer provides public keys corresponding to an actual
+    /// secret, preventing the public key attack
+    /// @dev can also work for aggregated publickeys and signtures
+    /// @param pubkeyG1 public key in G1 
+    /// @param pubkeyG2 public key in G2 
+    /// @param data to be signed by the signer
+    /// @param signature of the data by the signer
+    function verifyHelpedAggregationPublicKeysRec(
+        uint256[2] memory pubkeyG1, uint256[4] memory pubkeyG2, 
+        bytes memory data,uint256[2] memory signature
+        ) internal view returns (bool) {
+        uint256[2] memory hash = hashToPoint(data);
+        require(verifySingle(signature, pubkeyG2, hash), "verification failed");
+
+        uint256 alpha = uint256(keccak256(abi.encodePacked(data, signature[0], 
+            signature[1], pubkeyG2[0], pubkeyG2[1], pubkeyG2[2], 
+            pubkeyG2[3], pubkeyG1[0], pubkeyG1[1])));
+        uint256[2] memory scaled_p1 = mulPoint(pubkeyG1, alpha);
+        uint256[2] memory scaled_g1_generator = mulPoint([G1x, G1y], alpha);
+
+        uint256[2] memory g1_part_sig = addPoints(signature, scaled_p1);
+        uint256[2] memory g1_part_hash = addPoints(hash, scaled_g1_generator);
+        return verifySingle(g1_part_sig, pubkeyG2, g1_part_hash); 
     }
 }
